@@ -1,0 +1,16 @@
+{
+  "name": "razorpay-payment-learning-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MiniStore Razorpay payment gateway learning project",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "razorpay": "^2.9.6"
+  }
+}

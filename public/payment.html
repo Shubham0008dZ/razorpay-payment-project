@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MiniStore — Razorpay Payment Demo</title>
+
+  <!-- Razorpay Checkout -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --surface:#ffffff;
+      --text:#15171c;
+      --muted:#6b7280;
+      --line:#e7e8ee;
+      --primary:#5b3df5;
+      --primary-dark:#472ad8;
+      --green:#0d9b61;
+      --danger:#d73f3f;
+      --shadow:0 18px 55px rgba(22,24,35,.08);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:linear-gradient(180deg,#fff 0%,var(--bg) 42%,#f4f5f8 100%);
+      color:var(--text);
+      min-height:100vh;
+    }
+
+    button,input{font:inherit}
+    button{cursor:pointer}
+    a{text-decoration:none;color:inherit}
+
+    .container{
+      width:min(1180px,92%);
+      margin:auto;
+    }
+
+    header{
+      position:sticky;
+      top:0;
+      z-index:40;
+      border-bottom:1px solid rgba(231,232,238,.9);
+      background:rgba(255,255,255,.82);
+      backdrop-filter:blur(16px);
+    }
+
+    .nav{
+      min-height:74px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:850;
+      font-size:20px;
+      letter-spacing:-.5px;
+    }
+
+    .brand-mark{
+      width:39px;
+      height:39px;
+      display:grid;
+      place-items:center;
+      border-radius:12px;
+      color:#fff;
+      background:linear-gradient(135deg,#694dfb,#4225ce);
+      box-shadow:0 10px 25px rgba(91,61,245,.28);
+    }
+
+    .nav-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .test-pill{
+      font-size:12px;
+      font-weight:800;
+      color:var(--primary);
+      background:#f0edff;
+      border:1px solid #ddd7ff;
+      padding:8px 11px;
+      border-radius:999px;
+    }
+
+    .cart-button{
+      border:1px solid var(--line);
+      background:#fff;
+      padding:10px 14px;
+      border-radius:12px;
+      font-weight:800;
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+
+    .hero{
+      padding:54px 0 34px;
+      display:grid;
+      grid-template-columns:1.25fr .75fr;
+      gap:30px;
+      align-items:center;
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      font-size:12px;
+      font-weight:850;
+      letter-spacing:.5px;
+      text-transform:uppercase;
+      padding:7px 10px;
+      border-radius:999px;
+      background:#f0edff;
+      color:var(--primary);
+      margin-bottom:15px;
+    }
+
+    .hero h1{
+      font-size:clamp(38px,5.3vw,66px);
+      line-height:.99;
+      letter-spacing:-3.2px;
+      max-width:740px;
+    }
+
+    .hero h1 span{color:var(--primary)}
+    .hero p{
+      margin-top:17px;
+      color:var(--muted);
+      font-size:17px;
+      line-height:1.65;
+      max-width:660px;
+    }
+
+    .hero-card{
+      position:relative;
+      overflow:hidden;
+      border-radius:28px;
+      background:linear-gradient(145deg,#16181f,#2a2e39);
+      color:#fff;
+      padding:28px;
+      box-shadow:var(--shadow);
+      min-height:230px;
+    }
+
+    .hero-card::before{
+      content:"";
+      position:absolute;
+      width:200px;
+      height:200px;
+      border-radius:50%;
+      background:rgba(103,78,255,.22);
+      right:-70px;
+      top:-70px;
+      filter:blur(4px);
+    }
+
+    .hero-card .small{
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:1.7px;
+      opacity:.62;
+    }
+
+    .hero-card .big{
+      margin-top:10px;
+      font-size:42px;
+      line-height:1;
+      font-weight:900;
+      position:relative;
+      z-index:1;
+    }
+
+    .hero-card .copy{
+      margin-top:16px;
+      max-width:330px;
+      color:#c8ced8;
+      font-size:13px;
+      line-height:1.6;
+      position:relative;
+      z-index:1;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:1.5fr .75fr;
+      gap:24px;
+      padding-bottom:70px;
+    }
+
+    .section-head{
+      display:flex;
+      align-items:end;
+      justify-content:space-between;
+      margin:8px 0 16px;
+      gap:10px;
+    }
+
+    .section-head h2{
+      font-size:24px;
+      letter-spacing:-.8px;
+    }
+
+    .section-head p{
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .products{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+    }
+
+    .product{
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:15px;
+      box-shadow:0 9px 32px rgba(20,22,30,.045);
+      transition:transform .2s ease,box-shadow .2s ease;
+    }
+
+    .product:hover{
+      transform:translateY(-3px);
+      box-shadow:0 17px 40px rgba(20,22,30,.09);
+    }
+
+    .product-art{
+      height:205px;
+      display:grid;
+      place-items:center;
+      border-radius:17px;
+      background:
+        radial-gradient(circle at 28% 22%,rgba(255,255,255,.95),transparent 35%),
+        linear-gradient(135deg,#eceaff,#f8f8fb);
+      font-size:70px;
+    }
+
+    .tag{
+      display:inline-block;
+      margin-top:13px;
+      padding:6px 9px;
+      border-radius:999px;
+      font-size:10px;
+      font-weight:850;
+      color:var(--primary);
+      background:#f0edff;
+    }
+
+    .product h3{
+      margin-top:9px;
+      font-size:18px;
+      letter-spacing:-.35px;
+    }
+
+    .product p{
+      margin-top:5px;
+      color:var(--muted);
+      line-height:1.5;
+      font-size:13px;
+      min-height:39px;
+    }
+
+    .product-bottom{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-top:15px;
+    }
+
+    .price{
+      font-size:22px;
+      font-weight:900;
+    }
+
+    .add{
+      border:0;
+      color:#fff;
+      background:var(--primary);
+      padding:11px 15px;
+      border-radius:12px;
+      font-weight:820;
+    }
+
+    .add:hover{background:var(--primary-dark)}
+
+    .side{
+      position:sticky;
+      top:96px;
+      align-self:start;
+    }
+
+    .cart{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:20px;
+      box-shadow:var(--shadow);
+    }
+
+    .cart-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding-bottom:15px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .cart-top h2{
+      font-size:21px;
+    }
+
+    .count{
+      padding:6px 9px;
+      border-radius:999px;
+      background:#f2f3f7;
+      font-size:12px;
+      font-weight:850;
+      color:#545862;
+    }
+
+    #cartItems{margin-top:4px}
+
+    .empty{
+      text-align:center;
+      color:var(--muted);
+      padding:30px 8px;
+      font-size:13px;
+      line-height:1.65;
+    }
+
+    .cart-item{
+      display:grid;
+      grid-template-columns:45px 1fr auto;
+      gap:10px;
+      align-items:start;
+      padding:13px 0;
+      border-bottom:1px solid #f0f1f4;
+    }
+
+    .mini{
+      width:45px;
+      height:45px;
+      display:grid;
+      place-items:center;
+      border-radius:12px;
+      background:#f4f2ff;
+      font-size:22px;
+    }
+
+    .cart-item h4{
+      font-size:13px;
+      margin-top:2px;
+    }
+
+    .cart-item .muted{
+      color:var(--muted);
+      font-size:11px;
+      margin-top:3px;
+    }
+
+    .qty{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      margin-top:8px;
+    }
+
+    .qty button{
+      width:26px;
+      height:26px;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:8px;
+      font-weight:850;
+    }
+
+    .qty span{
+      min-width:16px;
+      text-align:center;
+      font-size:12px;
+      font-weight:850;
+    }
+
+    .remove{
+      border:0;
+      background:transparent;
+      color:#9aa0aa;
+      font-size:18px;
+      padding:0;
+      margin-top:1px;
+    }
+
+    .summary{
+      margin-top:16px;
+      display:grid;
+      gap:10px;
+    }
+
+    .summary-row{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      font-size:14px;
+    }
+
+    .summary-row span:first-child{color:var(--muted)}
+
+    .summary-total{
+      margin-top:3px;
+      padding-top:14px;
+      border-top:1px dashed var(--line);
+      font-size:18px;
+      font-weight:900;
+    }
+
+    .checkout{
+      margin-top:16px;
+      width:100%;
+      border:0;
+      background:#17191f;
+      color:#fff;
+      padding:14px;
+      border-radius:14px;
+      font-weight:850;
+    }
+
+    .checkout:hover{background:#2b2e36}
+    .checkout:disabled{opacity:.42;cursor:not-allowed}
+
+    .secure{
+      text-align:center;
+      color:#8a909a;
+      font-size:11px;
+      line-height:1.55;
+      margin-top:11px;
+    }
+
+    .modal{
+      display:none;
+      position:fixed;
+      inset:0;
+      z-index:100;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      background:rgba(10,12,17,.56);
+      backdrop-filter:blur(8px);
+    }
+
+    .modal.show{display:flex}
+
+    .modal-card{
+      width:min(500px,100%);
+      background:#fff;
+      border-radius:24px;
+      padding:23px;
+      box-shadow:0 30px 100px rgba(0,0,0,.2);
+    }
+
+    .modal-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:17px;
+    }
+
+    .modal-head h3{
+      font-size:21px;
+    }
+
+    .close{
+      width:36px;height:36px;
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:10px;
+      font-size:20px;
+    }
+
+    .form{
+      display:grid;
+      gap:12px;
+    }
+
+    label{
+      display:block;
+      font-size:12px;
+      font-weight:800;
+      margin-bottom:6px;
+    }
+
+    input{
+      width:100%;
+      border:1px solid var(--line);
+      padding:12px 13px;
+      border-radius:11px;
+      outline:none;
+    }
+
+    input:focus{
+      border-color:#8c79ff;
+      box-shadow:0 0 0 4px #eeeaff;
+    }
+
+    .pay{
+      border:0;
+      background:var(--primary);
+      color:#fff;
+      padding:13px 15px;
+      border-radius:12px;
+      font-weight:850;
+      margin-top:2px;
+    }
+
+    .pay:hover{background:var(--primary-dark)}
+
+    .info{
+      padding:12px 13px;
+      border-radius:11px;
+      font-size:12px;
+      line-height:1.55;
+      background:#f3f1ff;
+      color:#523cd1;
+    }
+
+    .success{
+      background:#e9f9f1;
+      color:#0c7750;
+    }
+
+    .error{
+      background:#fff0f0;
+      color:#ad3131;
+    }
+
+    footer{
+      padding:0 0 34px;
+      text-align:center;
+      color:#9297a0;
+      font-size:11px;
+    }
+
+    @media(max-width:900px){
+      .hero,.layout{grid-template-columns:1fr}
+      .side{position:static}
+    }
+
+    @media(max-width:640px){
+      .products{grid-template-columns:1fr}
+      .hero{padding-top:32px}
+      .test-pill{display:none}
+      .product-art{height:180px}
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="container nav">
+      <div class="brand">
+        <div class="brand-mark">M</div>
+        MiniStore
+      </div>
+
+      <div class="nav-right">
+        <div class="test-pill">Razorpay Payment Demo</div>
+        <button class="cart-button" onclick="scrollToCart()">
+          🛒 Cart <span id="navCount">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">● Payment Gateway Learning Project</div>
+
+        <h1>
+          Buy small. Test real checkout. Learn <span>Razorpay.</span>
+        </h1>
+
+        <p>
+          A simple e-commerce style frontend for practicing cart logic,
+          checkout details and Razorpay Standard Checkout. Later, the
+          backend will create the Razorpay order securely.
+        </p>
+      </div>
+
+      <div class="hero-card">
+        <div class="small">Current demo</div>
+        <div class="big">₹5 – ₹5,000+</div>
+        <div class="copy">
+          Product prices are editable in JavaScript. For live payments,
+          use your own legitimate product/service and an activated Razorpay
+          merchant account.
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+
+      <div>
+        <div class="section-head">
+          <div>
+            <h2>Products</h2>
+            <p>Pick something and add it to your cart.</p>
+          </div>
+        </div>
+
+        <div class="products" id="products"></div>
+      </div>
+
+      <aside class="side" id="cartSection">
+        <div class="cart">
+
+          <div class="cart-top">
+            <h2>Your Cart</h2>
+            <div class="count" id="cartCount">0 items</div>
+          </div>
+
+          <div id="cartItems">
+            <div class="empty">
+              Your cart is empty.<br />
+              Add a product to start checkout.
+            </div>
+          </div>
+
+          <div class="summary">
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <strong id="subtotal">₹0</strong>
+            </div>
+
+            <div class="summary-row">
+              <span>GST (18%)</span>
+              <strong id="tax">₹0</strong>
+            </div>
+
+            <div class="summary-row summary-total">
+              <span>Total</span>
+              <strong id="total">₹0</strong>
+            </div>
+          </div>
+
+          <button
+            class="checkout"
+            id="checkoutBtn"
+            disabled
+            onclick="openCustomerModal()"
+          >
+            Proceed to Checkout
+          </button>
+
+          <div class="secure">
+            🔒 Payment will open through Razorpay Checkout.
+            API secret must stay on the server.
+          </div>
+
+        </div>
+      </aside>
+
+    </section>
+
+  </main>
+
+  <footer>
+    MiniStore · Razorpay Standard Checkout Frontend · Learning Project
+  </footer>
+
+
+  <!-- Customer details modal -->
+  <div class="modal" id="customerModal">
+
+    <div class="modal-card">
+
+      <div class="modal-head">
+        <h3>Checkout Details</h3>
+        <button class="close" onclick="closeCustomerModal()">×</button>
+      </div>
+
+      <form class="form" id="customerForm">
+
+        <div>
+          <label for="name">Full Name</label>
+          <input
+            id="name"
+            type="text"
+            placeholder="Your name"
+            autocomplete="name"
+            required
+          />
+        </div>
+
+        <div>
+          <label for="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          />
+        </div>
+
+        <div>
+          <label for="phone">Phone</label>
+          <input
+            id="phone"
+            type="tel"
+            inputmode="numeric"
+            maxlength="10"
+            placeholder="9876543210"
+            autocomplete="tel"
+            required
+          />
+        </div>
+
+        <div class="info" id="amountBox">
+          Total payable: ₹0
+        </div>
+
+        <button class="pay" type="submit">
+          Continue to Razorpay
+        </button>
+
+        <div class="info" id="statusBox">
+          Frontend is ready. The next step is to connect
+          <b>POST /api/create-order</b> to your Node.js backend.
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+
+  <script>
+    /*
+      ==========================================================
+      RAZORPAY FRONTEND
+      ==========================================================
+
+      IMPORTANT:
+      - key_id is public and can be used in frontend.
+      - key_secret MUST NEVER be placed here.
+      - order_id must be generated by your backend.
+      - amount sent to Razorpay is in paise.
+    */
+
+    // Your frontend public Razorpay Key ID goes here later.
+    const RAZORPAY_KEY_ID = "YOUR_RAZORPAY_KEY_ID";
+
+    // Your backend endpoint goes here later.
+    const CREATE_ORDER_ENDPOINT = "/api/create-order";
+
+    const products = [
+      {
+        id: 1,
+        name: "Demo Notebook",
+        price: 49,
+        emoji: "📓",
+        tag: "Stationery",
+        desc: "Simple low-value product for checkout testing."
+      },
+      {
+        id: 2,
+        name: "Coffee Mug",
+        price: 99,
+        emoji: "☕",
+        tag: "Lifestyle",
+        desc: "Perfect example product for a small payment."
+      },
+      {
+        id: 3,
+        name: "Desk Lamp",
+        price: 199,
+        emoji: "💡",
+        tag: "Home",
+        desc: "Use this item to test quantity and total calculations."
+      },
+      {
+        id: 4,
+        name: "Mini Backpack",
+        price: 299,
+        emoji: "🎒",
+        tag: "Travel",
+        desc: "A slightly larger ticket for multi-item checkout."
+      }
+    ];
+
+    let cart = JSON.parse(localStorage.getItem("miniStoreCart") || "[]");
+
+    const money = amount =>
+      "₹" + Number(amount).toLocaleString("en-IN");
+
+    function renderProducts() {
+      const root = document.getElementById("products");
+
+      root.innerHTML = products.map(product => `
+        <article class="product">
+
+          <div class="product-art">
+            ${product.emoji}
+          </div>
+
+          <span class="tag">${product.tag}</span>
+
+          <h3>${product.name}</h3>
+
+          <p>${product.desc}</p>
+
+          <div class="product-bottom">
+            <div class="price">${money(product.price)}</div>
+
+            <button
+              class="add"
+              onclick="addToCart(${product.id})"
+            >
+              Add to Cart
+            </button>
+          </div>
+
+        </article>
+      `).join("");
+    }
+
+    function addToCart(id) {
+      const product = products.find(p => p.id === id);
+      if (!product) return;
+
+      const existing = cart.find(item => item.id === id);
+
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          emoji: product.emoji,
+          qty: 1
+        });
+      }
+
+      saveCart();
+      renderCart();
+    }
+
+    function changeQty(id, delta) {
+      const item = cart.find(x => x.id === id);
+      if (!item) return;
+
+      item.qty += delta;
+
+      if (item.qty <= 0) {
+        cart = cart.filter(x => x.id !== id);
+      }
+
+      saveCart();
+      renderCart();
+    }
+
+    function removeFromCart(id) {
+      cart = cart.filter(x => x.id !== id);
+      saveCart();
+      renderCart();
+    }
+
+    function saveCart() {
+      localStorage.setItem("miniStoreCart", JSON.stringify(cart));
+    }
+
+    function subtotal() {
+      return cart.reduce(
+        (sum, item) => sum + item.price * item.qty,
+        0
+      );
+    }
+
+    function tax() {
+      return Math.round(subtotal() * 0.18);
+    }
+
+    function total() {
+      return subtotal() + tax();
+    }
+
+    function itemCount() {
+      return cart.reduce((sum, item) => sum + item.qty, 0);
+    }
+
+    function renderCart() {
+      const root = document.getElementById("cartItems");
+      const count = itemCount();
+
+      document.getElementById("cartCount").textContent =
+        `${count} ${count === 1 ? "item" : "items"}`;
+
+      document.getElementById("navCount").textContent = count;
+
+      document.getElementById("subtotal").textContent =
+        money(subtotal());
+
+      document.getElementById("tax").textContent =
+        money(tax());
+
+      document.getElementById("total").textContent =
+        money(total());
+
+      document.getElementById("checkoutBtn").disabled =
+        cart.length === 0;
+
+      if (!cart.length) {
+        root.innerHTML = `
+          <div class="empty">
+            Your cart is empty.<br />
+            Add a product to start checkout.
+          </div>
+        `;
+        return;
+      }
+
+      root.innerHTML = cart.map(item => `
+        <div class="cart-item">
+
+          <div class="mini">${item.emoji}</div>
+
+          <div>
+            <h4>${item.name}</h4>
+
+            <div class="muted">
+              ${money(item.price)} each
+            </div>
+
+            <div class="qty">
+              <button onclick="changeQty(${item.id}, -1)">−</button>
+              <span>${item.qty}</span>
+              <button onclick="changeQty(${item.id}, 1)">+</button>
+            </div>
+          </div>
+
+          <div style="text-align:right">
+            <strong>${money(item.price * item.qty)}</strong>
+
+            <br />
+
+            <button
+              class="remove"
+              onclick="removeFromCart(${item.id})"
+              title="Remove"
+            >
+              ×
+            </button>
+          </div>
+
+        </div>
+      `).join("");
+    }
+
+    function scrollToCart() {
+      document.getElementById("cartSection")
+        .scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+    }
+
+    function openCustomerModal() {
+      if (!cart.length) return;
+
+      document.getElementById("amountBox").innerHTML =
+        `Total payable: <b>${money(total())}</b>`;
+
+      resetStatus();
+
+      document.getElementById("customerModal")
+        .classList.add("show");
+    }
+
+    function closeCustomerModal() {
+      document.getElementById("customerModal")
+        .classList.remove("show");
+    }
+
+    function resetStatus() {
+      const box = document.getElementById("statusBox");
+
+      box.className = "info";
+
+      box.innerHTML = `
+        Frontend is ready. The next step is to connect
+        <b>POST /api/create-order</b> to your Node.js backend.
+      `;
+    }
+
+    function setStatus(message, type = "info") {
+      const box = document.getElementById("statusBox");
+
+      box.className = "info";
+
+      if (type === "success") box.classList.add("success");
+      if (type === "error") box.classList.add("error");
+
+      box.innerHTML = message;
+    }
+
+    document.getElementById("customerForm")
+      .addEventListener("submit", async event => {
+
+        event.preventDefault();
+
+        const name =
+          document.getElementById("name").value.trim();
+
+        const email =
+          document.getElementById("email").value.trim();
+
+        const phone =
+          document.getElementById("phone").value.trim();
+
+        if (!/^[0-9]{10}$/.test(phone)) {
+          setStatus(
+            "Please enter a valid 10-digit phone number.",
+            "error"
+          );
+          return;
+        }
+
+        /*
+          STEP 1:
+          Send cart + customer details to your backend.
+        */
+
+        const payload = {
+          customer: {
+            name,
+            email,
+            phone
+          },
+          items: cart,
+          amount: total()
+        };
+
+        setStatus("Creating Razorpay order...", "info");
+
+        try {
+
+          const response = await fetch(CREATE_ORDER_ENDPOINT, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const order = await response.json();
+
+          if (!response.ok || !order.success) {
+            throw new Error(order.message || "Unable to create Razorpay order.");
+          }
+
+          closeCustomerModal();
+
+          openRazorpayCheckout(order);
+
+        } catch (error) {
+
+          console.error(error);
+
+          setStatus(
+            "Order creation failed. Check your backend.",
+            "error"
+          );
+        }
+      });
+
+
+    /*
+      ==========================================================
+      FUNCTION WE WILL ACTUALLY USE AFTER BACKEND IS CONNECTED
+      ==========================================================
+    */
+
+    function openRazorpayCheckout(order) {
+
+      const options = {
+        key: order.key_id || RAZORPAY_KEY_ID,
+
+        amount: order.amount,
+
+        currency: order.currency || "INR",
+
+        name: "MiniStore",
+
+        description: "MiniStore Order",
+
+        order_id: order.id,
+
+        prefill: {
+          name: document.getElementById("name").value,
+          email: document.getElementById("email").value,
+          contact: document.getElementById("phone").value
+        },
+
+        theme: {
+          color: "#5b3df5"
+        },
+
+        handler: function (response) {
+
+          console.log("Razorpay success response:", response);
+
+          /*
+            response contains values such as:
+
+            response.razorpay_payment_id
+            response.razorpay_order_id
+            response.razorpay_signature
+
+            These MUST be sent to the backend
+            for signature verification.
+          */
+
+          setStatus("Verifying payment signature...", "info");
+
+          fetch("/api/verify-payment", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(response)
+          })
+          .then(async res => {
+            const data = await res.json();
+            if (!res.ok || !data.verified) {
+              throw new Error(data.message || "Payment verification failed.");
+            }
+
+            setStatus(
+              `
+              Payment verified successfully ✅<br><br>
+              Payment ID:<br>
+              <b>${data.payment_id}</b><br><br>
+              Order ID:<br>
+              <b>${data.order_id}</b>
+              `,
+              "success"
+            );
+          })
+          .catch(error => {
+            console.error(error);
+            setStatus(
+              `
+              Payment was completed, but verification failed on the server ❌<br><br>
+              ${error.message}
+              `,
+              "error"
+            );
+          });
+        },
+
+        modal: {
+          ondismiss: function () {
+            console.log("Razorpay checkout closed.");
+          }
+        }
+      };
+
+      const rzp = new Razorpay(options);
+
+      rzp.on("payment.failed", function(response) {
+
+        console.error(
+          "Payment failed:",
+          response.error
+        );
+
+        setStatus(
+          `
+          Payment failed ❌<br><br>
+          ${response.error?.description || "Please try again."}
+          `,
+          "error"
+        );
+      });
+
+      rzp.open();
+    }
+
+
+    document.getElementById("customerModal")
+      .addEventListener("click", event => {
+        if (event.target.id === "customerModal") {
+          closeCustomerModal();
+        }
+      });
+
+
+    renderProducts();
+    renderCart();
+
+  </script>
+</body>
+</html>
